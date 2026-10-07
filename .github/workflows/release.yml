@@ -1,50 +1,31 @@
-name: Release Obsidian plugin
+name: Build personal search plugin
 
-on:
-    push:
-        tags:
-            - '*'
+# Produce reviewable artifacts without publishing a release.
+on: workflow_dispatch
+
+permissions:
+    contents: read
 
 jobs:
     build:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            id-token: write
-            attestations: write
+        runs-on: macos-15
         steps:
             - uses: actions/checkout@v6
-
-            - name: Use Node.js
-              uses: actions/setup-node@v6
+            - uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
-
-            - name: Build plugin
-              run: |
-                  npm ci
-                  npm run build
-
-            - name: Check for optional styles
-              id: styles
-              run: |
-                  [ -f styles.css ] && echo "exists=true" >> "$GITHUB_OUTPUT" || echo "exists=false" >> "$GITHUB_OUTPUT"
-
-            - name: Attest build provenance
-              uses: actions/attest@v4
+                  cache: npm
+            - run: npm ci
+            - run: npm install --global @lancedb/lancedb@latest
+            - run: npm run lint
+            - run: npm run package:darwin-arm64
+            - run: npm run verify:m0
+            - run: npm run verify:m1
+            - run: npm run verify:m2
+            - run: npm run verify:m3
+            - run: npm run verify:ann
+            - uses: actions/upload-artifact@v4
               with:
-                  subject-path: |
-                      main.js
-                      ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
-
-            - name: Create release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  tag="${GITHUB_REF#refs/tags/}"
-
-                  gh release create "$tag" \
-                    --title="$tag" \
-                    --draft \
-                    main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
+                  name: lancedb-search-darwin-arm64
+                  path: dist/*-darwin-arm64.zip
+                  if-no-files-found: error

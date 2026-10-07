@@ -1,18 +1,32 @@
 {
-	"name": "obsidian-sample-plugin",
-	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"name": "lancedb-search",
+	"version": "0.1.0",
+	"description": "Local keyword and optional remote semantic search for Obsidian using global LanceDB",
+	"private": true,
+	"engines": {
+		"node": ">=22"
+	},
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"package:darwin-arm64": "npm run build && node scripts/package-platform.mjs",
+		"check:runtime": "node scripts/check-runtime.mjs",
+		"verify:m0": "node scripts/verify-m0.mjs",
+		"verify:m1": "node scripts/verify-m1.mjs",
+		"verify:m2": "node scripts/verify-m2.mjs",
+		"verify:m3": "node scripts/verify-m3.mjs",
+		"verify:ann": "node scripts/verify-ann.mjs",
+		"benchmark:keywords": "node scripts/benchmark-keywords.mjs",
+		"benchmark:vectors": "node scripts/benchmark-vectors.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint ."
 	},
 	"keywords": [],
 	"license": "0-BSD",
 	"devDependencies": {
+		"@lancedb/lancedb": "latest",
 		"@eslint/js": "^9.39.4",
 		"@types/node": "^22.15.17",
 		"esbuild": "0.25.5",

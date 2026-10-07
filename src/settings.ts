@@ -1,38 +1,24 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
-import MyPlugin from './main';
+import { loadEmbeddingSettings, type EmbeddingSettings } from './embeddings/settings';
+import { normalizeDirectories } from './utils/directories';
+export { normalizeDirectories } from './utils/directories';
 
-export interface MyPluginSettings {
-	mySetting: string;
+export interface RuntimeSettings {
+	nodePath: string;
+	globalModulesPath: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default',
-};
+export interface PluginSettings extends RuntimeSettings {
+	excludedDirectories: string[];
+	embeddings: EmbeddingSettings;
+}
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const { containerEl } = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc("It's a secret")
-			.addText((text) =>
-				text
-					.setPlaceholder('Enter your secret')
-					.setValue(this.plugin.settings.mySetting)
-					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-	}
+export function loadSettings(data: unknown): PluginSettings {
+	const values = data as Partial<PluginSettings> | null;
+	return {
+		nodePath: typeof values?.nodePath === 'string' ? values.nodePath.trim() : '',
+		globalModulesPath: typeof values?.globalModulesPath === 'string' ? values.globalModulesPath.trim() : '',
+		embeddings: loadEmbeddingSettings(values?.embeddings),
+		excludedDirectories: Array.isArray(values?.excludedDirectories)
+			? normalizeDirectories(values.excludedDirectories.filter((path) => typeof path === 'string').join('\n')) : [],
+	};
 }

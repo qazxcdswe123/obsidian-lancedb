@@ -1,8 +1,21 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+.lancedb-search input[type="search"] { width: 100%; }
+.lancedb-search-controls { display: flex; gap: 8px; margin-bottom: 8px; }
+.lancedb-search-help, .lancedb-search-status, .lancedb-search-path {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+.lancedb-search-results { max-height: 55vh; overflow-y: auto; margin-top: 12px; }
+.lancedb-search-result {
+	display: block;
+	width: 100%;
+	height: auto;
+	padding: 12px;
+	text-align: start;
+	white-space: normal;
+	background: transparent;
+	box-shadow: none;
+	border-radius: var(--radius-m);
+}
+.lancedb-search-result.is-selected { background: var(--background-modifier-hover); }
+.lancedb-search-title { font-weight: var(--font-semibold); }
+.lancedb-search-snippet { margin-top: 4px; color: var(--text-muted); line-height: 1.5; }

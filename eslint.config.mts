@@ -10,6 +10,7 @@ export default defineConfig(
 		'version-bump.mjs',
 		'versions.json',
 		'main.js',
+		'search-host.cjs',
 		'package.json',
 		'package-lock.json',
 		'tsconfig.json',
@@ -29,4 +30,16 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ['scripts/**/*.mjs'],
+		languageOptions: {
+			globals: globals.node,
+			parserOptions: { projectService: false },
+		},
+		rules: {
+			// CLI tools report results to stdout and do not run in an Obsidian window.
+			'obsidianmd/rule-custom-message': 'off',
+			'obsidianmd/prefer-window-timers': 'off',
+		},
+	},
 );

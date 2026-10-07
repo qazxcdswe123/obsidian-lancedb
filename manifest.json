@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"id": "lancedb-search",
+	"name": "LanceDB search",
+	"version": "0.1.0",
+	"minAppVersion": "1.13.7",
+	"description": "Search Markdown with local keywords and optional remote semantic search using LanceDB.",
+	"author": "ccyynn",
+	"isDesktopOnly": true
 }

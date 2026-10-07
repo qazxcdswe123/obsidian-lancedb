@@ -2,13 +2,14 @@
 
 ## Project overview
 
+- Current delivery scope: personal use through manual installation. M0–M3 are implemented for this scope; M4 remains next. Do not require 100 labeled queries, an OmniSearch baseline, or a second Obsidian Sync device before use or further development; retain factual validation limits and normal correctness checks.
 - Target: Obsidian Community Plugin (TypeScript → bundled JavaScript).
-- Entry point: `src/main.ts` compiled to `main.js` and loaded by Obsidian.
-- Required release artifacts: `main.js`, `manifest.json`, and optional `styles.css`.
+- Entry points: `src/main.ts` compiled to `main.js` for Obsidian, and `src/search-host.ts` compiled to `search-host.cjs` for an isolated native search process.
+- Required plugin artifacts: `main.js`, `search-host.cjs`, `manifest.json`, `resources.json`, `LICENSE`, and optional `styles.css`. LanceDB, Arrow, and native resources come from the user's global npm installation and are not bundled.
 
 ## Environment & tooling
 
-- Node.js: use current LTS (Node 18+ recommended).
+- Build/runtime Node.js: version 22 or newer, also satisfying the requirements of the currently installed LanceDB. Users install Node.js with npm and run `npm install -g @lancedb/lancedb@latest`. Do not pin the runtime SDK version.
 - **Package manager: npm** (required for this sample - `package.json` defines npm scripts and dependencies).
 - **Bundler: esbuild** (required for this sample - `esbuild.config.mjs` and build scripts depend on it). Alternative bundlers like Rollup or webpack are acceptable for other projects if they bundle all external dependencies into `main.js`.
 - Types: `obsidian` type definitions.
@@ -61,7 +62,7 @@ npm run build
     ```
 - **Do not commit build artifacts**: Never commit `node_modules/`, `main.js`, or other generated files to version control.
 - Keep the plugin small. Avoid large dependencies. Prefer browser-compatible packages.
-- Generated output should be placed at the plugin root or `dist/` depending on your build setup. Release artifacts must end up at the top level of the plugin folder in the vault (`main.js`, `manifest.json`, `styles.css`).
+- Generated output belongs in the plugin root or `dist/` and must not be committed. Install the complete plugin package at the plugin folder root; do not copy development node_modules or native libraries into it.
 
 ## Manifest rules (`manifest.json`)
 
@@ -79,7 +80,7 @@ npm run build
 
 ## Testing
 
-- Manual install for testing: copy `main.js`, `manifest.json`, `styles.css` (if any) to:
+- Manual install for testing: extract the complete package produced by `npm run package:darwin-arm64` to:
     ```
     <Vault>/.obsidian/plugins/<plugin-id>/
     ```
@@ -94,9 +95,11 @@ npm run build
 
 ## Versioning & releases
 
+The current goal is personal use. Apply the following release steps when a public release is requested.
+
 - Bump `version` in `manifest.json` (SemVer) and update `versions.json` to map plugin version → minimum app version.
 - Create a GitHub release whose tag exactly matches `manifest.json`'s `version`. Do not use a leading `v`.
-- Attach `manifest.json`, `main.js`, and `styles.css` (if present) to the release as individual assets.
+- Attach the complete plugin ZIP including the background entry point. Users install or update the global npm dependency separately with `@latest`. Keep releases as drafts until the actual Obsidian M0 gates pass.
 - After the initial release, follow the process to add/update your plugin in the community catalog as required.
 
 ## Security, privacy, and compliance
@@ -106,7 +109,7 @@ Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particula
 - Default to local/offline operation. Only make network requests when essential to the feature.
 - No hidden telemetry. If you collect optional analytics or call third-party services, require explicit opt-in and document clearly in `README.md` and in settings.
 - Never execute remote code, fetch and eval scripts, or auto-update plugin code outside of normal releases.
-- Minimize scope: read/write only what's necessary inside the vault. Do not access files outside the vault.
+- Minimize scope: note content and index writes stay inside the vault. Runtime exceptions are executing the user's Node.js/npm installation, reading npm's global-prefix configuration, and loading the selected global LanceDB package and its dependencies. Do not read unrelated files outside the vault or modify global packages from the plugin.
 - Clearly disclose any external services used, data sent, and risks.
 - Respect user privacy. Do not collect vault contents, filenames, or personal information unless absolutely necessary and explicitly consented.
 - Avoid deceptive patterns, ads, or spammy notifications.
@@ -133,7 +136,7 @@ Follow Obsidian's **Developer Policies** and **Plugin Guidelines**. In particula
 - **Keep `main.ts` minimal**: Focus only on plugin lifecycle (onload, onunload, addCommand calls). Delegate all feature logic to separate modules.
 - **Split large files**: If any file exceeds ~200-300 lines, consider breaking it into smaller, focused modules.
 - **Use clear module boundaries**: Each file should have a single, well-defined responsibility.
-- Bundle everything into `main.js` (no unbundled runtime deps).
+- Bundle plugin code into its two entry points. Resolve `@lancedb/lancedb` explicitly from `npm root -g` or the configured global modules directory, and launch the selected external Node.js executable. Never use the Electron Node fuse, bundle/pin the SDK or Arrow, silently load development dependencies, auto-install/update packages, or substitute workers. Validate the installed package by its API and native behavior, not an exact version allowlist.
 - Avoid Node/Electron APIs if you want mobile compatibility; set `isDesktopOnly` accordingly.
 - Prefer `async/await` over promise chains; handle errors gracefully.
 
